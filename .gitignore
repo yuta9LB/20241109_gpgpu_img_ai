@@ -1,0 +1,8 @@
+# dataset
+/VOCdevkit/
+/VOCtrainval_11-May-2012.tar
+
+# __pycache__
+/__pycache__/
+
+2024*
