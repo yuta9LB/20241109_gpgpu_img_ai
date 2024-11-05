@@ -1,0 +1,7 @@
+numpy==1.22.3
+time
+torch
+math
+tqdm
+matplotlib
+Pillow
