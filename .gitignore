@@ -5,4 +5,9 @@
 # __pycache__
 /__pycache__/
 
+# 実行フォルダ
 2024*
+
+# 未了
+download_dataset.ipynb
+semantic_segmentation.ipynb
