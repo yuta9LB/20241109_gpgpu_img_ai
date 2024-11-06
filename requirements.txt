@@ -1,7 +1,6 @@
 numpy==1.22.3
-time
 torch
-math
 tqdm
-matplotlib
+matplotlib==3.7
 Pillow
+torchvision
