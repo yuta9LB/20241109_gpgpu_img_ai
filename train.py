@@ -3,12 +3,12 @@ import math
 import tqdm
 import torch
 import numpy as np
-from torch import nn
 from PIL import Image
-from dataset import VOCDataset
 from torch.utils.data import DataLoader
+
 from unet import UNet
-from util import CombinedLoss, DiceCrossEntropyLoss
+from dataset import VOCDataset
+from util import DiceCrossEntropyLoss
 
 # VOC2012で用いるラベル
 CLASSES = ['backgrounds','aeroplane','bicycle','bird','boat','bottle',
@@ -35,7 +35,7 @@ def train(dataloader, model, optimizer, criterion, device):
             # 損失誤差を計算
             pred = model(inp)
 
-            loss = criterion(pred, gt)
+            loss = criterion(pred, gt, device)
             total_loss += loss.item()
 
             # バックプロパゲーション
@@ -62,7 +62,7 @@ def test(dataloader, model, criterion, device):
         for item in dataloader:
             inp, gt = item[0].to(device), item[1].to(device)
             pred = model(inp)
-            loss = criterion(pred, gt)
+            loss = criterion(pred, gt, device)
             total_loss += loss.item()
 
         avg_loss = total_loss / step_total
@@ -71,35 +71,32 @@ def test(dataloader, model, criterion, device):
     return avg_loss
 
 def main():
-    save_dir = './20241104_add_normalize'
-    save_name_prefix = '20241104_add_normalize'
+    save_dir = './savedir'
+    save_name_prefix = 'savename'
     csv_path = os.path.join(save_dir, f'{save_name_prefix}.csv')
 
     initial_epoch = 0
-    chkp_path = None
+    chkp_path = None #'weights/unet_241106_00.pth'
+    continuation = False # 続きから再開する場合True
 
     train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_1464.txt'
-    # train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_300.txt'
     val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_1449.txt'
-    # val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_100.txt'
 
-    img_dir = 'VOCdevkit/VOC2012/JPEGImages'
-    gt_dir = 'VOCdevkit/VOC2012/SegmentationClass'
+    img_dir = 'VOCdevkit/VOC2012_sample/JPEGImages'
+    gt_dir = 'VOCdevkit/VOC2012_sample/SegmentationClass'
 
     with open(train_list_path, 'r') as f:
         train_list = f.read().splitlines()
     with open(val_list_path, 'r') as g:
         val_list = g.read().splitlines()
-    
 
-
-    train_ds = VOCDataset(img_list=train_list, phase='trian', img_dir=img_dir, gt_dir=gt_dir)
-    val_ds = VOCDataset(img_list=val_list, phase='val', img_dir=img_dir, gt_dir=gt_dir)
+    train_ds = VOCDataset(img_list=train_list, img_dir=img_dir, gt_dir=gt_dir, data_augmentation=True)
+    val_ds = VOCDataset(img_list=val_list, img_dir=img_dir, gt_dir=gt_dir)
     print(f"len(train_data): {train_ds.__len__()}")
     print(f"len(test_data): {val_ds.__len__()}")
 
-    train_dl = DataLoader(train_ds, batch_size=16, shuffle=True)
-    val_dl = DataLoader(val_ds, batch_size=16, shuffle=True)
+    train_dl = DataLoader(train_ds, batch_size=16, num_workers=8, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=16, num_workers=8, shuffle=True)
 
     epochs = 100
     device = 'cuda' if torch.cuda.is_available()  else "cpu"
@@ -112,12 +109,14 @@ def main():
     if chkp_path is not None:
         checkpoint = torch.load(chkp_path, map_location='cpu', weights_only=True)
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-        # initial_epoch = checkpoint["epoch"] + 1
+        if continuation == True:
+            initial_epoch = checkpoint["epoch"] + 1
     
-    # criterion =  CombinedLoss()
-    weight = None # torch.tensor([0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).to(device)
-    criterion =  DiceCrossEntropyLoss(weight=weight) #nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    weight = None # torch.tensor([0.3, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5])
+    if weight is not None:
+        weight = weight.to(device)
+    criterion =  DiceCrossEntropyLoss(weight=weight, dice_weight=0.5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
