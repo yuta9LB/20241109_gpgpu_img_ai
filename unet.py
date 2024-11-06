@@ -4,10 +4,10 @@ from torch import nn
 class TwoConvBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
-        self.conv1 = nn.Conv2d(in_channels, middle_channels, kernel_size = 3, padding="same")
+        self.conv1 = nn.Conv2d(in_channels, middle_channels, kernel_size = 3, padding='same')
         self.bn1 = nn.BatchNorm2d(middle_channels)
         self.rl1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(middle_channels, out_channels, kernel_size = 3, padding="same")
+        self.conv2 = nn.Conv2d(middle_channels, out_channels, kernel_size = 3, padding='same')
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.rl2 = nn.ReLU(inplace=True)
 
@@ -23,14 +23,17 @@ class TwoConvBlock(nn.Module):
 class UpConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.conv_transpose = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
-        # self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
-        # self.bn1 = nn.BatchNorm2d(in_channels)
-        # self.conv = nn.Conv2d(in_channels, out_channels, kernel_size = 2, padding="same")
-        # self.bn2 = nn.BatchNorm2d(out_channels)
+        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size = 2, padding='same')
+        self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
-        return self.conv_transpose(x)
+        x = self.up(x)
+        x = self.bn1(x)
+        x = self.conv(x)
+        x = self.bn2(x)
+        return x
 
 class UNet(nn.Module):
     def __init__(self, softmax=False):
@@ -52,8 +55,7 @@ class UNet(nn.Module):
         self.UC4= UpConv(128, 64)
 
         self.conv1 = nn.Conv2d(64, 22, kernel_size = 1)
-        # self.soft = nn.Softmax(dim = 1)
-        self.soft = nn.Sigmoid()
+        self.soft = nn.Softmax(dim = 1)
         self.softmax = softmax
 
     def forward(self, x):
