@@ -10,7 +10,7 @@ CPUとGPUの比較（compare.ipynb）完了<br>
 テストお願いします。<br>
 
 ### 2024/11/06
-セマンティックセグメンテーション（semantic_segmentation.ipynb）<br>
+セマンティックセグメンテーション（semantic_segmentation.ipynb）完了<br>
 テストお願いします。<br>
 色々パラメータいじりながら、どれだけ精度上げられるか試してほしいです。<br>
 （UNetがシンプルな構造だからか、あんまり上がらないと思いますが…）<br>
@@ -25,3 +25,16 @@ CPUとGPUの比較（compare.ipynb）完了<br>
 <p>以下は時間的にも難易度的にもハードルが高いと思いますが、余裕があればぜひ試してみてください。</p>
 - モデル: model
 - 損失関数: criterion
+
+### 2024/11/07
+PSPNetを用いたセマンティックセグメンテーション（semantic_segmentation_with_pspnet.ipynb）完了<br>
+PSPNet関連のスクリプト（pspnet.py & train_psp.py）完了<br>
+テストお願いします。<br>
+Unetと同じくパラメータいじりながら、どれだけ精度上げられるか試してほしいです。<br>
+
+<b>触れるパラメータ</b>
+- 学習率: lr
+- クロスエントロピー損失のクラスごとの重み: weight
+- 損失のうち、Dice Lossの比率: dice_weight
+- 損失のうち、AUXのロスの比率: aux_weight
+- データ拡張の有無: data_augmentation
