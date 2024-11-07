@@ -71,34 +71,54 @@ def test(dataloader, model, criterion, device):
     return avg_loss
 
 def main():
-    save_dir = './savedir'
-    save_name_prefix = 'savename'
-    csv_path = os.path.join(save_dir, f'{save_name_prefix}.csv')
-
-    initial_epoch = 0
-    chkp_path = None #'weights/unet_241106_00.pth'
-    continuation = False # 続きから再開する場合True
-
-    train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_1464.txt'
-    val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_1449.txt'
-
+    # データディレクトリ
     img_dir = 'VOCdevkit/VOC2012_sample/JPEGImages'
     gt_dir = 'VOCdevkit/VOC2012_sample/SegmentationClass'
+
+    # データのリストファイル
+    train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_300.txt'
+    val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_100.txt'
+
+    # 保存先
+    save_dir = './unet_sample' # 訓練ログ保存ディレクトリ
+    save_name_prefix = 'unet_sample' # 訓練ログ保存名
+    csv_path = os.path.join(save_dir, f'{save_name_prefix}.csv')
+
+    # データローダーの引数（大きいほど高速に動作するが、GPUの性能により限界がある）
+    batch_size=16 # バッチサイズ
+    num_workers=8 # ワーカープロセス数（データ読み込みの並列数）
+
+    # 学習関連
+    initial_epoch = 0 # 変えない
+    epochs = 100 # エポック
+    lr = 0.01 # 学習率
+
+    # 重み
+    chkp_path = None # 重みの初期値
+    continuation = False # 訓練を続きから再開する場合True
+
+    # データアーギュメント
+    data_augmentation = False
+
+    # 損失関数関連
+    weight = None
+    dice_weight = 0.5
+
 
     with open(train_list_path, 'r') as f:
         train_list = f.read().splitlines()
     with open(val_list_path, 'r') as g:
         val_list = g.read().splitlines()
 
-    train_ds = VOCDataset(img_list=train_list, img_dir=img_dir, gt_dir=gt_dir, data_augmentation=True)
+    train_ds = VOCDataset(img_list=train_list, img_dir=img_dir, gt_dir=gt_dir, data_augmentation=data_augmentation)
     val_ds = VOCDataset(img_list=val_list, img_dir=img_dir, gt_dir=gt_dir)
     print(f"len(train_data): {train_ds.__len__()}")
     print(f"len(test_data): {val_ds.__len__()}")
 
-    train_dl = DataLoader(train_ds, batch_size=16, num_workers=8, shuffle=True)
-    val_dl = DataLoader(val_ds, batch_size=16, num_workers=8, shuffle=True)
+    train_dl = DataLoader(train_ds, batch_size=batch_size, num_workers=num_workers, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=num_workers, shuffle=True)
 
-    epochs = 100
+
     device = 'cuda' if torch.cuda.is_available()  else "cpu"
     print("Using {} device".format(device))
 
@@ -111,12 +131,11 @@ def main():
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         if continuation == True:
             initial_epoch = checkpoint["epoch"] + 1
-    
-    weight = None # torch.tensor([0.3, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5])
+
     if weight is not None:
         weight = weight.to(device)
-    criterion =  DiceCrossEntropyLoss(weight=weight, dice_weight=0.5)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    criterion =  DiceCrossEntropyLoss(weight=weight, dice_weight=dice_weight)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
@@ -143,3 +162,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
