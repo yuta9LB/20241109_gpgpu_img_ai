@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class ConvBatchNorm(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding, dilation, bias):
-        super(ConvBatchNormRelu, self).__init__()
+        super(ConvBatchNorm, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, bias=bias)
         self.batchnorm = nn.BatchNorm2d(out_channels)
     
@@ -129,7 +129,7 @@ class ResidualBlockPSP(nn.Sequential):
 
         # bottleNeckIdentifyPSPの繰り返しの用意
         for i in range(n_blocks-1):
-            self.add_module("block"+str(i+2), bottleNeckIdentifyPSP(out_channels, mid_channels, out_channels, stride, dilation))
+            self.add_module("block"+str(i+2), bottleNeckIdentifyPSP(out_channels, mid_channels, stride, dilation))
 
 class DecodePSPFeature(nn.Module):
     def __init__(self, height, width, n_classes):
@@ -181,17 +181,17 @@ class PSPNet(nn.Module):
 
         # 4つのモジュールを構成するサブネットワーク
         self.feature_conv = FeatureMap_Conv()
-        self.feature_res1 = ResidualBlockPSP(n_block=block_config[0], in_channels=128, mid_channels=64, out_channels=256, stride=1, dilation=1)
-        self.feature_res2 = ResidualBlockPSP(n_block=block_config[1], in_channels=256, mid_channels=128, out_channels=512, stride=2, dilation=1)
-        self.feature_dilated_res1 = ResidualBlockPSP(n_block=block_config[2], in_channels=512, mid_channels=256, out_channels=1024, stride=1, dilation=2)
-        self.feature_dilated_res2 = ResidualBlockPSP(n_block=block_config[3], in_channels=1024, mid_channels=512, out_channels=2048, stride=1, dilation=4)
+        self.feature_res1 = ResidualBlockPSP(n_blocks=block_config[0], in_channels=128, mid_channels=64, out_channels=256, stride=1, dilation=1)
+        self.feature_res2 = ResidualBlockPSP(n_blocks=block_config[1], in_channels=256, mid_channels=128, out_channels=512, stride=2, dilation=1)
+        self.feature_dilated_res1 = ResidualBlockPSP(n_blocks=block_config[2], in_channels=512, mid_channels=256, out_channels=1024, stride=1, dilation=2)
+        self.feature_dilated_res2 = ResidualBlockPSP(n_blocks=block_config[3], in_channels=1024, mid_channels=512, out_channels=2048, stride=1, dilation=4)
 
         self.pyramid_pooling = PyramidPooling(in_channels=2048, pool_sizes=[6, 3, 2, 1], height=input_size//8, width=input_size//8)
         self.decode_feature = DecodePSPFeature(height=input_size, width=input_size, n_classes=n_classes)
 
         self.aux = AuxiliaryPSPlayers(in_channels=1024, height=input_size, width=input_size, n_classes=n_classes)
 
-    def forward(self):
+    def forward(self, x):
         x = self.feature_conv(x)
         x = self.feature_res1(x)
         x = self.feature_res2(x)
@@ -204,4 +204,4 @@ class PSPNet(nn.Module):
         x = self.pyramid_pooling(x)
         output = self.decode_feature(x)
 
-        return (output, output_aux)
+        return output, output_aux
