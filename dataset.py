@@ -20,7 +20,7 @@ class DataTransforme(torch.nn.Module):
     def __init__(self, input_size, data_augmentation):
         super().__init__()
         self.to_tensor = transforms.ToTensor()
-        self.resize = transforms.Resize(size=(input_size, input_size))
+        self.resize = transforms.Resize(size=(input_size, input_size), interpolation=transforms.InterpolationMode.NEAREST)
         self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
         self.data_augmentation = data_augmentation
@@ -37,7 +37,7 @@ class DataTransforme(torch.nn.Module):
         img_normalized = self.normalize(img_resized)
 
         gt_np = np.asarray(gt)
-        gt_np = np.where(gt_np == 255, 0, gt_np)
+        gt_np = np.where(gt_np == 255, 22, gt_np)
         gt_tensor = torch.tensor(gt_np, dtype=torch.long)
         gt_tensor = gt_tensor.unsqueeze(0)
         gt_resized = self.resize(gt_tensor)
