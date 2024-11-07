@@ -4,3 +4,4 @@ tqdm
 matplotlib==3.7
 Pillow
 torchvision
+pandas==2.0
