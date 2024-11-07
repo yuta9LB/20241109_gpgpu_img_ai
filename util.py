@@ -12,7 +12,7 @@ CLASSES = ['backgrounds','aeroplane','bicycle','bird','boat','bottle',
             ]
 
 # カラーパレットの作成
-COLOR_PALETTE = np.array(Image.open("./VOCdevkit/VOC2012/SegmentationClass/2007_000170.png").getpalette()).reshape(-1,3)
+COLOR_PALETTE = np.array(Image.open("./VOCdevkit/VOC2012_sample/SegmentationClass/2007_000170.png").getpalette()).reshape(-1,3)
 COLOR_PALETTE = COLOR_PALETTE.tolist()[:len(CLASSES)]
     
 class DiceCrossEntropyLoss(nn.Module):
