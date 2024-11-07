@@ -1,40 +1,58 @@
 # 2024/11/09 公開講座
 
-## 使用データ
-https://drive.google.com/drive/folders/1--us3n6Eo01-jsIt1RpLg5mVJhRj60vV?usp=drive_link
+## ファイル一覧
+### Jupiter Notebook
+↓ Google Colab
+- 0_GoogleColabの基本的操作について.ipynb
+    - 1_compare.ipynbに統合予定
+- 1_compare.ipynb
+    - CPUとGPUの比較
+    - Google Colab側で調整必要
+- 2_machine_learning.ipynb
+    - 機械学習・セマンティックセグメンテーションについての説明
+    - Google Colab側で調整必要
+    - アンケート結果によっては調整必要
+↓ 以降クラスター側
+- 3-1_semantic_segmentation_with_unet.ipynb
+    - UNetの訓練
+    - 可視化の部分調整予定
+- 3-2_semantic_segmentation_with_pspnet.ipynb
+    - PSPNetの訓練
+    - 可視化の部分調整予定
+- 4_test.ipynb
+    - 各グループでの推論可視化＋最終評価用
+    - 評価計算法変更予定
+- 5_hints.ipynb
+    - 演習のヒント
+    - 未了
 
-## 進捗
-### 2024/11/05
-Google Colab使い方（GoogleColabの基本的操作について.ipynb）完了<br>
-CPUとGPUの比較（compare.ipynb）完了<br>
-テストお願いします。<br>
+### Pythonスクリプト
+- unet.py
+    - UNetモデル
+    - 演習の際いじってもらってOK
+- pspnet.py
+    - PSPNetモデル
+    - 演習の際いじってもらってOK
+- train_u.py
+    - UNetの訓練スクリプト
+    - JupiterじゃなくてこっちでもOK
+- train_psp.py
+    - PSPNetの訓練スクリプト
+    - JupiterじゃなくてこっちでもOK
+- dataset.py
+    - データセットスクリプト
+    - 演習時前処理をいじってもいいかも
+- util.py
+    - その他関数等
+    - 現状ロスだけなので、'loss.py'とかにするかも
 
-### 2024/11/06
-セマンティックセグメンテーション（semantic_segmentation.ipynb）完了<br>
-テストお願いします。<br>
-色々パラメータいじりながら、どれだけ精度上げられるか試してほしいです。<br>
-（UNetがシンプルな構造だからか、あんまり上がらないと思いますが…）<br>
-あと、余裕があれば機械学習を行う上でどんなことをしているのか、モデルがどんな構造をしているのかなど、理解するよう頑張ってみてください。<br>
-一応前日準備の際、一通り説明したいと思います。<br>
-
-<b>触れるパラメータ</b>
-- 学習率: lr
-- クロスエントロピー損失のクラスごとの重み: weight
-- 損失のうち、Dice Lossの比率: dice_weight
-- データ拡張の有無: data_augmentation
-<p>以下は時間的にも難易度的にもハードルが高いと思いますが、余裕があればぜひ試してみてください。</p>
-- モデル: model
-- 損失関数: criterion
-
-### 2024/11/07
-PSPNetを用いたセマンティックセグメンテーション（semantic_segmentation_with_pspnet.ipynb）完了<br>
-PSPNet関連のスクリプト（pspnet.py & train_psp.py）完了<br>
-テストお願いします。<br>
-Unetと同じくパラメータいじりながら、どれだけ精度上げられるか試してほしいです。<br>
-
-<b>触れるパラメータ</b>
-- 学習率: lr
-- クロスエントロピー損失のクラスごとの重み: weight
-- 損失のうち、Dice Lossの比率: dice_weight
-- 損失のうち、AUXのロスの比率: aux_weight
-- データ拡張の有無: data_augmentation
+### その他
+- requirements.txt
+    - Colabでもクラスターでも最初に'pip install -r requirements.txt'してね
+- img/
+    - Jupiterノートに載せている画像を入れているディレクトリ
+- weights/
+    - 重みの初期値を入れておくディレクトリ
+    - 重いのでgit経由無理、手作業で用意
+- VOCdevkit/
+    - データセットディレクトリ
