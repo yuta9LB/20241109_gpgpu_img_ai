@@ -76,8 +76,8 @@ def main():
     gt_dir = 'VOCdevkit/VOC2012_sample/SegmentationClass'
 
     # データのリストファイル
-    train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_300.txt'
-    val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_100.txt'
+    train_list_path = 'VOCdevkit/VOC2012_sample/listfile/train_list_1464.txt'
+    val_list_path = 'VOCdevkit/VOC2012_sample/listfile/val_list_1449.txt'
 
     # 保存先
     save_dir = './pspnet_sample' # 訓練ログ保存ディレクトリ
@@ -92,18 +92,19 @@ def main():
     initial_epoch = 0 # 変えない
     epochs = 100 # エポック
     lr = 0.01 # 学習率
+    weight_decay = 0
 
     # 重み
     chkp_path = None # 重みの初期値
     continuation = False # 訓練を続きから再開する場合True
 
     # データアーギュメント
-    data_augmentation = False
+    data_augmentation = True
 
     # 損失関数関連
     weight = None
     dice_weight = 0.5
-
+    aux_weight = 0.4
 
     with open(train_list_path, 'r') as f:
         train_list = f.read().splitlines()
@@ -135,15 +136,15 @@ def main():
     if weight is not None:
         weight = weight.to(device)
     criterion =  DiceCrossEntropyLoss(weight=weight, dice_weight=dice_weight)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
     for epoch in range(initial_epoch, epochs):
         print(f"Epoch {epoch}\n-------------------------------")
-        train_loss = train(train_dl, model, optimizer, criterion, device)
-        val_loss = test(val_dl, model, criterion, device)
+        train_loss = train(train_dl, model, optimizer, criterion, aux_weight, device)
+        val_loss = test(val_dl, model, criterion, aux_weight, device)
 
         torch.save(
         {

@@ -92,6 +92,7 @@ def main():
     initial_epoch = 0 # 変えない
     epochs = 100 # エポック
     lr = 0.01 # 学習率
+    weight_decay = 0
 
     # 重み
     chkp_path = None # 重みの初期値
@@ -135,7 +136,7 @@ def main():
     if weight is not None:
         weight = weight.to(device)
     criterion =  DiceCrossEntropyLoss(weight=weight, dice_weight=dice_weight)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
