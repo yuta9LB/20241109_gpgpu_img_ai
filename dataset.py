@@ -37,7 +37,7 @@ class DataTransforme(torch.nn.Module):
         img_normalized = self.normalize(img_resized)
 
         gt_np = np.asarray(gt)
-        gt_np = np.where(gt_np == 255, 22, gt_np)
+        gt_np = np.where(gt_np == 255, 0, gt_np)
         gt_tensor = torch.tensor(gt_np, dtype=torch.long)
         gt_tensor = gt_tensor.unsqueeze(0)
         gt_resized = self.resize(gt_tensor)
